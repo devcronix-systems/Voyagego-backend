@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+
+ #PHP Service
+  php8-apache:
+    build:
+      args:
+        user: www-data
+        uid: 1000
+      context: .
+      dockerfile: .docker/Dockerfile
+    image: php8-app #custom image
+    container_name: voyagego-backend
+    restart: always
+    ports:
+      - "9001:9000"
+      - "444:443"
+    volumes:
+      - ./:/var/www/voyagego/
+      - ./.docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./.docker/php/www.conf:/usr/local/etc/php/conf.d/www.conf
+      - ./.docker/apache/voyagego.conf:/etc/apache2/sites-available/000-default.conf
+    networks:
+      - vg-backend
+    depends_on:
+      - db-postgres
+
+#PostgreSQL database
+  db-postgres:
+    image: postgres:12.10
+    container_name: postgres_db 
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: voyagego
+      POSTGRES_USER: voyagego
+      POSTGRES_PASSWORD: y@BI&8s4pAEr
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - vg-backend
+
+#Networks
+networks:
+  vg-backend:
+
+#Volumes
+volumes:
+  postgres-data:
+    driver: local
